@@ -66,7 +66,7 @@ public class GachaResultTrain : MonoBehaviour
     {
         string s = "";
         foreach(var v in infos)
-            s += $"{v.id}: {v.rarity}\n";
+            s += $"start: \n{v.id}: {v.rarity}\n";
         Debug.Log(s);
         ResultsSet(infos);
         Next();
