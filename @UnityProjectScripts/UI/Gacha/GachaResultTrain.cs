@@ -60,12 +60,12 @@ public class GachaResultTrain : MonoBehaviour
         }
 
         if (aniPlayer[aniPlayer.clip.name].normalizedTime >= 1)
-            aniSkip();
+            AniSkip();
     }
     public void StartResult(GachaManager.GachaResultInfo[] infos)
     {
         string s = "";
-        foreach(var v in infos)
+        foreach (var v in infos)
             s += $"start: \n{v.id}: {v.rarity}\n";
         Debug.Log(s);
         ResultsSet(infos);
@@ -81,7 +81,7 @@ public class GachaResultTrain : MonoBehaviour
     void Next()
     {
         skipButton.onClick.RemoveAllListeners();
-        skipButton.onClick.AddListener(aniSkip);
+        skipButton.onClick.AddListener(AniSkip);
         if (index < infos.Length)
         {
             CharDataSet(infos[index]);
@@ -94,7 +94,7 @@ public class GachaResultTrain : MonoBehaviour
             AllSkip();
     }
 
-    public void aniSkip()
+    public void AniSkip()
     {
         skipButton.onClick.RemoveAllListeners();
         skipButton.onClick.AddListener(Next);
@@ -110,93 +110,91 @@ public class GachaResultTrain : MonoBehaviour
 
     void CharDataSet(GachaManager.GachaResultInfo info)
     {
-        Debug.Log($"{info.id}: {info.rarity}");
-        var id = info.id;
-        var data = GameResource.StudentTable[id];
-        var fra = FindObjectOfType<FullshotRenderAccessor>();
-        fra.Fullshot.sprite =
-            GameResource.Load<Sprite>($"Student/{data.Id}", $"Student_Fullshot_{data.Id}");
-        fra.FullshotHalo.sprite =
-            GameResource.Load<Sprite>($"Student/{data.Id}", $"Student_Fullshot_Halo_{data.Id}");
-        fra.FullshotBg.sprite =
-            GameResource.Load<Sprite>($"Student/{data.Id}", $"Student_Fullshot_Bg_{data.Id}");
-        Vector3 v = data.CamPos; v.z = -10f;
-        fra.Camera.transform.localPosition = v;
-        fra.Camera.orthographicSize = data.CamOrthoSize;
-
-        var clubData = GameResource.ClubTable.Values
-        .First(x => x.StudentList.Contains(id));
-        var schoolData = GameResource.SchoolTable.Values
-        .First(x => x.ClubList.Contains(clubData.Id));
-        string bgPath = string.IsNullOrEmpty(data.OverrideBgPath) ?
-            schoolData.BgPath : data.OverrideBgPath;
-
-        switch (info.rarity)
+        try
         {
-            case GachaManager.Rarity.s1:
-                aniPlayer.clip = r1;
-                CardImage.sprite = sr1;
-                backgroundImage.sprite = null;
-                backgroundImage.color = blue;
-                break;
-            case GachaManager.Rarity.s2:
-                aniPlayer.clip = r2;
-                CardImage.sprite = sr2;
-                backgroundImage.sprite = null;
-                backgroundImage.color = yello;
-                break;
-            default:
-                aniPlayer.clip = r3;
-                CardImage.sprite = sr3;
-                backgroundImage.color = Color.white;
-                var directory = Path.GetDirectoryName(bgPath);
-                var fileName = Path.GetFileName(bgPath);
-                backgroundImage.sprite = GameResource.Load<Sprite>(directory, fileName);
-                break;
-        }
+            Debug.Log($"{info.id}: {info.rarity}");
+            var id = info.id;
+            var data = GameResource.StudentTable[id];
+            var fra = FindObjectOfType<FullshotRenderAccessor>();
+            fra.Fullshot.sprite =
+                GameResource.Load<Sprite>($"Student/{data.Id}", $"Student_Fullshot_{data.Id}");
+            fra.FullshotHalo.sprite =
+                GameResource.Load<Sprite>($"Student/{data.Id}", $"Student_Fullshot_Halo_{data.Id}");
+            fra.FullshotBg.sprite =
+                GameResource.Load<Sprite>($"Student/{data.Id}", $"Student_Fullshot_Bg_{data.Id}");
+            Vector3 v = data.CamPos; v.z = -10f;
+            fra.Camera.transform.localPosition = v;
+            fra.Camera.orthographicSize = data.CamOrthoSize;
 
-        var fullshotRect = (RectTransform)fullShotImage.transform;
-        var fullshotTf = fra.Fullshot.transform;
-        var fullshotHaloTf = fra.FullshotHalo.transform;
-        var fullshotBgTf = fra.FullshotBg.transform;
+            var clubData = GameResource.ClubTable.Values
+            .First(x => x.StudentList.Contains(id));
+            var schoolData = GameResource.SchoolTable.Values
+            .First(x => x.ClubList.Contains(clubData.Id));
+            string bgPath = string.IsNullOrEmpty(data.OverrideBgPath) ?
+                schoolData.BgPath : data.OverrideBgPath;
+
+            switch (info.rarity)
+            {
+                case GachaManager.Rarity.s1:
+                    aniPlayer.clip = r1;
+                    CardImage.sprite = sr1;
+                    backgroundImage.sprite = null;
+                    backgroundImage.color = blue;
+                    break;
+                case GachaManager.Rarity.s2:
+                    aniPlayer.clip = r2;
+                    CardImage.sprite = sr2;
+                    backgroundImage.sprite = null;
+                    backgroundImage.color = yello;
+                    break;
+                default:
+                    aniPlayer.clip = r3;
+                    CardImage.sprite = sr3;
+                    backgroundImage.color = Color.white;
+                    var directory = Path.GetDirectoryName(bgPath);
+                    var fileName = Path.GetFileName(bgPath);
+                    backgroundImage.sprite = GameResource.Load<Sprite>(directory, fileName);
+                    break;
+            }
+
+            var fullshotRect = (RectTransform)fullShotImage.transform;
+            var fullshotTf = fra.Fullshot.transform;
+            var fullshotHaloTf = fra.FullshotHalo.transform;
+            var fullshotBgTf = fra.FullshotBg.transform;
 
 
-        if (data.FrontHalo)
-            fra.FullshotHalo.sortingOrder = 10; // fullshot과 fullshot face의 order는 5~6
-        else
-            fra.FullshotHalo.sortingOrder = 4;
-
-        var schoolTable = GameResource.SchoolTable;
-
-        logoSprite = GameResource.SchoolLogoSprites[schoolData.Id];
-        logoImage.sprite = logoSprite;
-
-        nameText.text = data.Name;
-        int rare = Mathf.Min((int)rarity, 2) + 1;
-        for(int i = 0; i < nameStar.childCount; ++i)
-        {
-            var s = nameStar.GetChild(i);
-            if (i < rare)
-                s.gameObject.SetActive(true);
+            if (data.FrontHalo)
+                fra.FullshotHalo.sortingOrder = 10; // fullshot과 fullshot face의 order는 5~6
             else
-                s.gameObject.SetActive(false);
+                fra.FullshotHalo.sortingOrder = 4;
+
+            var schoolTable = GameResource.SchoolTable;
+
+            logoSprite = GameResource.SchoolLogoSprites[schoolData.Id];
+            logoImage.sprite = logoSprite;
+
+            nameText.text = data.Name;
+
+            var gunData = GameResource.WeaponTable[data.WeaponId];
+
+            infoLogo.sprite = logoSprite;
+            //infoSchool, infoClub, infoRole, infoGun, infoBirth
+            infoSchool.text = schoolData.Name;
+            infoClub.text = clubData.Name;
+            infoRole.text = data.Attribute.ToStringKr();
+            infoGun.text = gunData.Type.ToString();
+        }
+        catch
+        {
+            Debug.LogWarning("캐릭터 정보 로드 실패");
         }
 
-        var gunData = GameResource.WeaponTable[data.WeaponId];
-
-        infoLogo.sprite = logoSprite;
-        //infoSchool, infoClub, infoRole, infoGun, infoBirth
-        infoSchool.text = schoolData.Name;
-        infoClub.text = clubData.Name;
-        infoRole.text = data.Attribute.ToStringKr();
-        infoGun.text = gunData.Type.ToString();
-
-        string[] t = new string[] { "도망쳐...", "살려줘...", "살..."};
+        string[] t = new string[] { "도망쳐...", "살려줘...", "살..." };
         try
         {
             infoBirth.text = "<color=#ff0000>" + t[Random.Range(0, t.Length + 1)] + "</color>";
         }
-        catch(System.Exception e)
+        catch (System.Exception e)
         {
             infoBirth.text = "<color=#ff0000>" + e + "</color>";
         }

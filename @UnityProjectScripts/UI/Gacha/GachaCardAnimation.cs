@@ -12,6 +12,7 @@ public class GachaCardAnimation : MonoBehaviour
     public float startPosition;
     public float movingTime;
     public float waitTime;
+    public float waitToResults;
 
     public Sprite[] cardSprite;
 
@@ -21,7 +22,9 @@ public class GachaCardAnimation : MonoBehaviour
     {
         StopAllCoroutines();
         for (int i = 0; i < cards.Length; ++i)
+        {
             cards[i].gameObject.SetActive(false);
+        }
     }
     bool isRencha;
 
@@ -56,12 +59,19 @@ public class GachaCardAnimation : MonoBehaviour
     {
         cardsResultArea.SetActive(true);
         if (isRencha)
+        {
+            cards[9].parent.parent.gameObject.SetActive(true);
             StartCoroutine(AllCardAnimationCoroutine());
+        }
         else
         {
+            cards[9].parent.parent.gameObject.SetActive(false);
             for (int i = 1; i < cards.Length; ++i)
+            {
                 cards[i].gameObject.SetActive(false);
-            StartCoroutine(cardAnimationCoroutine(0));
+                cards[i].parent.gameObject.SetActive(false);
+            }
+            StartCoroutine(CardAnimationCoroutine(0));
         }
     }
 
@@ -69,12 +79,6 @@ public class GachaCardAnimation : MonoBehaviour
     {
         cardsResultArea.SetActive(true);
         StopAllCoroutines();
-        for (int i = 0; i < cards.Length; ++i)
-        {
-            cards[i].gameObject.SetActive(true);
-            cards[i].transform.localScale = Vector3.one;
-            cards[i].transform.localPosition = Vector3.zero;
-        }
 
         CardEnd();
     }
@@ -83,8 +87,9 @@ public class GachaCardAnimation : MonoBehaviour
     {
         for (int i = 0; i < cards.Length; ++i)
         {
-            StartCoroutine(cardAnimationCoroutine(i));
-            yield return new WaitForSecondsRealtime(waitTime);
+            StartCoroutine(CardAnimationCoroutine(i));
+            if (i < infos.Length)
+                yield return new WaitForSecondsRealtime(waitTime);
         }
         while (!isAllCardStop())
             yield return null;
@@ -93,6 +98,23 @@ public class GachaCardAnimation : MonoBehaviour
 
     void CardEnd()
     {
+        StartCoroutine(DelayedStartResult());
+    }
+
+    IEnumerator DelayedStartResult()
+    {
+        yield return new WaitForSeconds(waitToResults);
+
+        cards[9].parent.parent.gameObject.SetActive(true);
+
+        for (int i = 0; i < cards.Length; ++i)
+        {
+            cards[i].parent.gameObject.SetActive(true);
+            cards[i].gameObject.SetActive(true);
+            cards[i].transform.localScale = Vector3.one;
+            cards[i].transform.localPosition = Vector3.zero;
+        }
+
         cardsResultArea.SetActive(false);
         grt.gameObject.SetActive(true);
         grt.StartResult(infos);
@@ -110,7 +132,7 @@ public class GachaCardAnimation : MonoBehaviour
         return true;
     }
 
-    IEnumerator cardAnimationCoroutine(int index)
+    IEnumerator CardAnimationCoroutine(int index)
     {
         var card = cards[index];
         var dir = new Vector3(-1, 1, 0);
