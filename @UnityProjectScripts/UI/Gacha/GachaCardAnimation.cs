@@ -8,11 +8,8 @@ public class GachaCardAnimation : MonoBehaviour
     public GachaResultTrain grt;
     public Transform[] cards;
 
-    public float startScale;
-    public float startPosition;
-    public float movingTime;
     public float waitTime;
-    public float waitToResults;
+    public float waitToResult;
 
     public Sprite[] cardSprite;
 
@@ -23,56 +20,47 @@ public class GachaCardAnimation : MonoBehaviour
         StopAllCoroutines();
         for (int i = 0; i < cards.Length; ++i)
         {
-            cards[i].gameObject.SetActive(false);
+            cards[i].gameObject.SetActive(true);
+            cards[i].GetComponentInChildren<Image>().gameObject.SetActive(false);
         }
     }
-    bool isRencha;
 
     public void SetCards(params GachaManager.GachaResultInfo[] infos)
     {
         this.infos = infos;
         cardsResultArea.SetActive(false);
+
         for (int i = 0; i < infos.Length; ++i)
         {
+            var img = cards[i].gameObject.GetComponentInChildren<Image>();
+            var ani = cards[i].GetComponentInChildren<UnityEngine.Animation>();
+
             switch (infos[i].rarity)
             {
                 case GachaManager.Rarity.s1:
-                    cards[i].gameObject.GetComponent<Image>().sprite = cardSprite[0];
+                    img.sprite = cardSprite[0];
+                    ani.clip = ani.GetClip("Ani_CardUpperR1");
                     break;
                 case GachaManager.Rarity.s2:
-                    cards[i].gameObject.GetComponent<Image>().sprite = cardSprite[1];
+                    img.sprite = cardSprite[1];
+                    ani.clip = ani.GetClip("Ani_CardUpperR2");
                     break;
                 default:
-                    cards[i].gameObject.GetComponent<Image>().sprite = cardSprite[2];
+                    img.sprite = cardSprite[2];
+                    ani.clip = ani.GetClip("Ani_CardUpperR3");
                     break;
             }
-            cards[i].gameObject.SetActive(false);
+            cards[i].gameObject.SetActive(true);
         }
 
         for (int i = infos.Length; i < cards.Length; ++i)
             cards[i].gameObject.SetActive(false);
-
-        isRencha = infos.Length == 10;
     }
 
     public void PlayAnimation()
     {
         cardsResultArea.SetActive(true);
-        if (isRencha)
-        {
-            cards[9].parent.parent.gameObject.SetActive(true);
-            StartCoroutine(AllCardAnimationCoroutine());
-        }
-        else
-        {
-            cards[9].parent.parent.gameObject.SetActive(false);
-            for (int i = 1; i < cards.Length; ++i)
-            {
-                cards[i].gameObject.SetActive(false);
-                cards[i].parent.gameObject.SetActive(false);
-            }
-            StartCoroutine(CardAnimationCoroutine(0));
-        }
+        StartCoroutine(CardAnimationCoroutine());
     }
 
     public void SkipAnimation()
@@ -83,19 +71,6 @@ public class GachaCardAnimation : MonoBehaviour
         CardEnd();
     }
 
-    IEnumerator AllCardAnimationCoroutine()
-    {
-        for (int i = 0; i < cards.Length; ++i)
-        {
-            StartCoroutine(CardAnimationCoroutine(i));
-            if (i < infos.Length)
-                yield return new WaitForSecondsRealtime(waitTime);
-        }
-        while (!isAllCardStop())
-            yield return null;
-        CardEnd();
-    }
-
     void CardEnd()
     {
         StartCoroutine(DelayedStartResult());
@@ -103,72 +78,23 @@ public class GachaCardAnimation : MonoBehaviour
 
     IEnumerator DelayedStartResult()
     {
-        yield return new WaitForSeconds(waitToResults);
-
-        cards[9].parent.parent.gameObject.SetActive(true);
-
-        for (int i = 0; i < cards.Length; ++i)
-        {
-            cards[i].parent.gameObject.SetActive(true);
+        for (int i = 0; i < infos.Length; ++i)
             cards[i].gameObject.SetActive(true);
-            cards[i].transform.localScale = Vector3.one;
-            cards[i].transform.localPosition = Vector3.zero;
-        }
+
+        yield return new WaitForSeconds(waitToResult);
 
         cardsResultArea.SetActive(false);
         grt.gameObject.SetActive(true);
         grt.StartResult(infos);
     }
 
-    bool isAllCardStop()
+    IEnumerator CardAnimationCoroutine()
     {
-        for (int i = 0; i < cards.Length; ++i)
+        for (int i = 0; i < infos.Length; ++i)
         {
-            var t = cards[i].transform;
-            var isStop = t.localPosition == Vector3.zero && t.localScale == Vector3.one;
-            if (!isStop)
-                return false;
+            yield return new WaitForSeconds(waitTime);
+            var ani = cards[i].GetComponentInChildren<UnityEngine.Animation>();
+            ani.Play();
         }
-        return true;
-    }
-
-    IEnumerator CardAnimationCoroutine(int index)
-    {
-        var card = cards[index];
-        var dir = new Vector3(-1, 1, 0);
-
-        card.localScale = Vector3.one * startScale;
-        card.localPosition = dir * startPosition;
-
-        var moveSpeed = startPosition / movingTime;
-        var scaleSpeed = (startScale - 1) / movingTime;
-
-        bool complete()
-        {
-            return
-                card.localPosition.x >= 0 &&
-                card.localPosition.y <= 0 &&
-                card.localScale.x <= 1 &&
-                card.localScale.y <= 1;
-
-        }
-
-        card.gameObject.SetActive(true);
-        while (!complete())
-        {
-            yield return new WaitForEndOfFrame();
-
-            if (card.localPosition.x <= 0 && card.localPosition.y >= 0)
-                card.localPosition += -dir * moveSpeed * Time.deltaTime;
-            else
-                card.localPosition = Vector3.zero;
-
-            if (card.localScale.x >= 1 && card.localScale.y >= 1)
-                card.localScale -= Vector3.one * scaleSpeed * Time.deltaTime;
-            else
-                card.localScale = Vector3.one;
-        }
-        card.localPosition = Vector3.zero;
-        card.localScale = Vector3.one;
     }
 }
