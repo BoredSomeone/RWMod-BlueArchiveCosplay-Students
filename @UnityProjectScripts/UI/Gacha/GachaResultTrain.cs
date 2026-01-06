@@ -25,6 +25,7 @@ public class GachaResultTrain : MonoBehaviour
     public RectTransform fullShotImage;
     public UnityEngine.Animation aniPlayer;
     public GameObject[] resultArea;
+    public GachaResult gr;
 
     public Image infoLogo;
     public Text infoSchool, infoClub, infoRole, infoGun, infoBirth;
@@ -106,6 +107,12 @@ public class GachaResultTrain : MonoBehaviour
     {
         for (int i = 0; i < resultArea.Length; ++i)
             resultArea[i].SetActive(false);
+        End();
+    }
+
+    public void End()
+    {
+        gr.PrintGachaResult(infos);
     }
 
     void CharDataSet(GachaManager.GachaResultInfo info)

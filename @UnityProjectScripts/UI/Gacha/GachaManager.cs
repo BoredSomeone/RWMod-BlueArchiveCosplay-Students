@@ -22,6 +22,8 @@ public class GachaManager : MonoBehaviour
     {
         public Rarity rarity;
         public int id;
+
+
     }
 
     public GachaSelector gs;

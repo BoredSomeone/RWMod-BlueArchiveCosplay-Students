@@ -580,6 +580,8 @@
     <Compile Include="Shared\MonoSingleton.cs" />
     <Compile Include="Shared\SlicedProgressBar.cs" />
     <Compile Include="Shared\UtilProcedure.cs" />
+    <Compile Include="UI\Gacha\GachaResultCardAccessor.cs" />
+    <Compile Include="UI\Gacha\GachaResult.cs" />
     <Compile Include="UI\Gacha\GachaManager.cs" />
     <Compile Include="UI\Gacha\GachaSelector.cs" />
     <Compile Include="UI\Gacha\GachaPopup.cs" />
